@@ -2,7 +2,7 @@
   :description "halresource is a library for building and representing resources in Hypertext Application Format (http://stateless.co/hal_specification.html)."
   :url "https://github.com/cndreisbach/halresource"
   :license {:name "Unlicense"
-            :url "http://stateless.co/hal_specification.html"}
+            :url "http://unlicense.org/"}
   :min-lein-version "2.0.0"
   :plugins [[lein-midje "3.0.0"]]
   :dependencies [[org.clojure/clojure "1.5.1"]

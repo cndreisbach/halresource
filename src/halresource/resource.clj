@@ -5,27 +5,60 @@
 
 (defrecord Resource [href links embedded properties])
 
-(defn new-resource [href]
+(defn new-resource
+  "Create a new empty resource, given a href for the resource."
+  
+  [href]
   (->Resource href [] [] {}))
 
-(defn add-link [resource & args]
+(defn add-link
+  "Add a link to the resource. Arguments are named parameters and
+   should include the following:
+
+   * :rel
+   * :href
+
+   Any other parameters will be attributes on the link."
+  
+  [resource & args]
   (let [link (apply hash-map args)]
     (update-in resource [:links] #((fnil conj []) % link))))
 
-(defn add-resource [resource type embedded]
+(defn add-resource
+  "Add an embedded resource to the resource. You must specify a type
+   for the embedded resource, which will be used to group them in
+   HAL+JSON or as the rel attribute in HAL+XML."
+
+  [resource type embedded]
   (update-in resource [:embedded] #((fnil conj []) % [(name type) embedded])))
 
-(defn add-property [resource & args]
+(defn add-property 
+  "Add one or more properties to the resource. These properties are
+   listed as named parameters, like so:
+
+   (add-property resource :size \"S\" :color \"green\")
+
+   These will be merged with the current properties."
+
+  [resource & args]
   (let [properties (apply hash-map args)]
     (update-in resource [:properties] #((fnil merge {}) % properties))))
 
-(defn add-properties [resource properties]
+(defn add-properties 
+  "Add one or more properties to the resource from a map. These will
+   be merged with the current properties."
+
+  [resource properties]
   (update-in resource [:properties] #((fnil merge {}) % properties)))
 
 (declare json-representation xml-representation)
 
-(defmulti resource->representation (fn [_ representation-type]
-                                     representation-type))
+(defmulti resource->representation
+  "Given a resource, create the HAL representation of that
+   resource. Valid representation-type values are :xml and :json."
+
+  (fn [_ representation-type]
+    representation-type))
 
 (defmethod resource->representation :json [resource _]
   (let [representation (json-representation resource)]
