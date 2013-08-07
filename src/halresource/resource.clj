@@ -69,7 +69,7 @@
       xml/sexp-as-element
       xml/emit-str))
 
-(defn- json-representation [resource]
+(defn json-representation [resource]
   (let [links (-> [{:rel "self" :href (:href resource)}]
                   (concat (:links resource)))
         embedded (into {}
@@ -96,7 +96,7 @@
                      (xml-property property v)))
    :else [property {} value]))
 
-(defn- xml-representation [resource]
+(defn xml-representation [resource]
   (let [href (:href resource)
         rel (:rel resource)]
     [:resource (if rel
