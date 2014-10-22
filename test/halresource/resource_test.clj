@@ -69,16 +69,6 @@
                              "admin" {"href" "/admin"}
                              "next" {"href" "/?page=2"}}}))
 
-       (fact "it transforms a resource with multiple links with same key into JSON"
-             (let [resource (-> resource
-                                (add-link :href "/admin" :rel "admin")
-                                (add-link :href "/?page=2" :rel "next")
-                                (add-link :href "/?page=3" :rel "next"))]
-               (json/parse-string (resource->representation resource :json))
-               => {"_links" {"self" {"href" "http://example.org"}
-                             "admin" {"href" "/admin"}
-                             "next" [{"href" "/?page=2"} {"href" "/?page=3"}]}}))
-
        (fact "it transforms a resource with multiple links into XML"
              (let [resource (-> resource
                                 (add-link :href "/admin" :rel "admin")
@@ -89,6 +79,29 @@
                     ["resource" {:href "http://example.org"}
                      ["link" {:href "/admin" :rel "admin"}]
                      ["link" {:href "/?page=2" :rel "next"}]]))))
+
+       (fact "it transforms a resource with multiple links with same key into JSON"
+             (let [resource (-> resource
+                                (add-link :href "/admin" :rel "admin")
+                                (add-link :href "/?page=2" :rel "next")
+                                (add-link :href "/?page=3" :rel "next"))]
+               (json/parse-string (resource->representation resource :json))
+               => {"_links" {"self" {"href" "http://example.org"}
+                             "admin" {"href" "/admin"}
+                             "next" [{"href" "/?page=2"} {"href" "/?page=3"}]}}))
+
+       (fact "it transforms a resource with multiple links with same key into XML"
+             (let [resource (-> resource
+                                (add-link :href "/admin" :rel "admin")
+                                (add-link :href "/?page=2" :rel "next")
+                                (add-link :href "/?page=3" :rel "next"))]
+               (resource->representation resource :xml)
+               => (xml/emit-str
+                   (xml/sexp-as-element
+                    ["resource" {:href "http://example.org"}
+                     ["link" {:href "/admin" :rel "admin"}]
+                     ["link" {:href "/?page=2" :rel "next"}]
+                     ["link" {:href "/?page=3" :rel "next"}]]))))
 
        (fact "it transforms a resource with properties into JSON"
              (let [resource (-> resource
