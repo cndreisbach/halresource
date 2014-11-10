@@ -1,4 +1,4 @@
-(defproject halresource "0.1.0-SNAPSHOT"
+(defproject halresource "0.2.0-SNAPSHOT"
   :description "halresource is a library for building and representing resources in Hypertext Application Format (http://stateless.co/hal_specification.html)."
   :url "https://github.com/cndreisbach/halresource"
   :license {:name "Unlicense"

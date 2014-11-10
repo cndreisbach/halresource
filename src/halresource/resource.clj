@@ -70,8 +70,10 @@
       xml/emit-str))
 
 (defn json-representation [resource]
-  (let [links (-> [{:rel "self" :href (:href resource)}]
-                  (concat (:links resource)))
+  (let [links (into {"self" {"href" (:href resource)}}
+                    (for [[k link] (group-by :rel (:links resource))]
+                      (letfn [(remove-rel [l] (dissoc l :rel))]
+                        [k (if (= 1 (count link)) (remove-rel (first link)) (map remove-rel link))])))
         embedded (into {}
                        (map (fn [[k resources]]
                               [(plural k)

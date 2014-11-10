@@ -53,8 +53,7 @@
 (facts "about resource->representation"
        (fact "it transforms a simple resource into JSON"
              (json/parse-string (resource->representation resource :json))
-             => {"_links" [{"href" "http://example.org"
-                            "rel" "self"}]})
+             => {"_links" {"self" {"href" "http://example.org"}}})
 
        (fact "it transforms a simple resource into XML"
              (resource->representation resource :xml)
@@ -66,12 +65,9 @@
                                 (add-link :href "/admin" :rel "admin")
                                 (add-link :href "/?page=2" :rel "next"))]
                (json/parse-string (resource->representation resource :json))
-               => {"_links" [{"href" "http://example.org"
-                              "rel" "self"}
-                             {"href" "/admin"
-                              "rel" "admin"}
-                             {"href" "/?page=2"
-                              "rel" "next"}]}))
+               => {"_links" {"self" {"href" "http://example.org"}
+                             "admin" {"href" "/admin"}
+                             "next" {"href" "/?page=2"}}}))
 
        (fact "it transforms a resource with multiple links into XML"
              (let [resource (-> resource
@@ -84,12 +80,34 @@
                      ["link" {:href "/admin" :rel "admin"}]
                      ["link" {:href "/?page=2" :rel "next"}]]))))
 
+       (fact "it transforms a resource with multiple links with same key into JSON"
+             (let [resource (-> resource
+                                (add-link :href "/admin" :rel "admin")
+                                (add-link :href "/?page=2" :rel "next")
+                                (add-link :href "/?page=3" :rel "next"))]
+               (json/parse-string (resource->representation resource :json))
+               => {"_links" {"self" {"href" "http://example.org"}
+                             "admin" {"href" "/admin"}
+                             "next" [{"href" "/?page=2"} {"href" "/?page=3"}]}}))
+
+       (fact "it transforms a resource with multiple links with same key into XML"
+             (let [resource (-> resource
+                                (add-link :href "/admin" :rel "admin")
+                                (add-link :href "/?page=2" :rel "next")
+                                (add-link :href "/?page=3" :rel "next"))]
+               (resource->representation resource :xml)
+               => (xml/emit-str
+                   (xml/sexp-as-element
+                    ["resource" {:href "http://example.org"}
+                     ["link" {:href "/admin" :rel "admin"}]
+                     ["link" {:href "/?page=2" :rel "next"}]
+                     ["link" {:href "/?page=3" :rel "next"}]]))))
+
        (fact "it transforms a resource with properties into JSON"
              (let [resource (-> resource
                                 (add-property :size 200 :height 12))]
                (json/parse-string (resource->representation resource :json))
-               => {"_links" [{"href" "http://example.org"
-                              "rel" "self"}]
+               => {"_links" {"self" {"href" "http://example.org"}}
                    "size" 200
                    "height" 12}))
 
@@ -146,11 +164,10 @@
                                 (add-resource "dataset" (new-resource "/data/1"))
                                 (add-resource "dataset" (new-resource "/data/2")))]
                (json/parse-string (resource->representation resource :json))
-               => {"_links" [{"href" "http://example.org"
-                              "rel" "self"}]
+               => {"_links" {"self" {"href" "http://example.org"}}
                    "_embedded" {"datasets"
-                                [{"_links" [{"href" "/data/1" "rel" "self"}]}
-                                 {"_links" [{"href" "/data/2" "rel" "self"}]}]}}))
+                                [{"_links" {"self" {"href" "/data/1"}}}
+                                 {"_links" {"self" {"href" "/data/2"}}}]}}))
 
        (fact "it transforms a resource with embedded resources into XML"
              (let [resource (-> resource
@@ -171,17 +188,14 @@
                                                             (add-link :href "/data/3" :rel "next")))
                                 (add-property :size 200 :height 12))]
                (json/parse-string (resource->representation resource :json))
-               => {"_links" [{"href" "http://example.org"
-                              "rel" "self"}
-                             {"href" "/admin"
-                              "rel" "admin"}
-                             {"href" "/?page=2"
-                              "rel" "next"}]
+               => {"_links" {"self" {"href" "http://example.org"}
+                             "admin" {"href" "/admin"}
+                             "next" {"href" "/?page=2"}}
                    "_embedded" {"datasets"
-                                [{"_links" [{"href" "/data/1" "rel" "self"}]
+                                [{"_links" {"self" {"href" "/data/1"}}
                                   "name" "Pete"}
-                                 {"_links" [{"href" "/data/2" "rel" "self"}
-                                            {"href" "/data/3" "rel" "next"}]}]}
+                                 {"_links" {"self" {"href" "/data/2"}
+                                            "next" {"href" "/data/3"}}}]}
                    "size" 200
                    "height" 12}))
 
